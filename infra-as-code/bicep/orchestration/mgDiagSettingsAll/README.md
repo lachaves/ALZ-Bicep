@@ -88,7 +88,7 @@ In this example, the Diagnostic Settings are enabled on the management groups th
 az deployment mg create \
   --template-file infra-as-code/bicep/orchestration/mgDiagSettingsAll/mgDiagSettingsAll.bicep \
   --parameters @infra-as-code/bicep/orchestration/mgDiagSettingsAll/parameters/mgDiagSettingsAll.parameters.all.json \
-  --location eastus
+  --location eastus \
   --management-group-id alz
 ```
 
@@ -99,7 +99,7 @@ OR
 az deployment mg create \
   --template-file infra-as-code/bicep/orchestration/mgDiagSettingsAll/mgDiagSettingsAll.bicep \
   --parameters @infra-as-code/bicep/orchestration/mgDiagSettingsAll/parameters/mgDiagSettingsAll.parameters.all.json \
-  --location chinaeast2
+  --location chinaeast2 \
   --management-group-id alz
 ```
 
@@ -110,7 +110,7 @@ az deployment mg create \
 New-AzManagementGroupDeployment `
   -TemplateFile infra-as-code/bicep/orchestration/mgDiagSettingsAll/mgDiagSettingsAll.bicep `
   -TemplateParameterFile infra-as-code/bicep/orchestration/mgDiagSettingsAll/parameters/mgDiagSettingsAll.parameters.all.json `
-  -Location eastus
+  -Location eastus `
   -ManagementGroupId alz
 
 ```
@@ -122,7 +122,7 @@ OR
 New-AzManagementGroupDeployment `
   -TemplateFile infra-as-code/bicep/orchestration/mgDiagSettingsAll/mgDiagSettingsAll.bicep `
   -TemplateParameterFile infra-as-code/bicep/orchestration/mgDiagSettingsAll/parameters/mgDiagSettingsAll.parameters.all.json `
-  -Location chinaeast2
+  -Location chinaeast2 `
   -ManagementGroupId alz
 
 ```
