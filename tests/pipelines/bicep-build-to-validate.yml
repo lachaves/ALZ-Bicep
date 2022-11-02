@@ -50,7 +50,7 @@ jobs:
             git_diff_logging2=$(git diff --name-only HEAD^ HEAD infra-as-code/bicep/modules/mgDiagSettings/mgDiagSettings.bicep)
             git_diff_logging3=$(git diff --name-only HEAD^ HEAD infra-as-code/bicep/orchestration/mgDiagSettingsAll/mgDiagSettingsAll.bicep)
             if [[ $git_diff_logging1 != '' ]] || [[ $git_diff_logging2 != '' ]] || [[ $git_diff_logging3 != '' ]]
-              then echo "##vso[task.setvariable variable=gitManagementOutput]setlogging"
+              then echo "##vso[task.setvariable variable=gitLoggingOUTPUT]setlogging"
             fi
             echo
 
@@ -143,6 +143,15 @@ jobs:
             az group create --name $(ResourceGroupName) --location $(Location)
 
       - task: Bash@3
+        displayName: Az CLI Register Resource Providers for PR
+        name: register_providers
+        inputs:
+          targetType: "inline"
+          script: |
+            az account set --subscription $(subscriptionId)
+            az provider register -n 'Microsoft.Insights'
+
+      - task: Bash@3
         displayName: Az CLI Deploy Management Groups for PR
         name: create_mgs
         condition: and(or(ne(variables['gitManagementOUTPUT'], ''), ne(variables['gitLoggingOUTPUT'], ''), ne(variables['gitSpokeOUTPUT'], ''), ne(variables['gitHubOUTPUT'], ''), ne(variables['gitVwanOUTPUT'], ''), ne(variables['gitVwanNwcOUTPUT'], ''), ne(variables['gitVnetPeerOUTPUT'], '')), ne(variables['subscriptionId'], ''))
@@ -185,7 +194,7 @@ jobs:
         inputs:
           targetType: "inline"
           script: |
-            az deployment tenant create --template-file infra-as-code/bicep/orchestration/mgDiagSettingsAll/mgDiagSettingsAll.bicep --parameters @infra-as-code/bicep/orchestration/mgDiagSettingsAll/parameters/mgDiagSettings.parameters.min.json
+            az deployment tenant create --template-file infra-as-code/bicep/orchestration/mgDiagSettingsAll/mgDiagSettingsAll.bicep --parameters @infra-as-code/bicep/orchestration/mgDiagSettingsAll/parameters/mgDiagSettingsAll.parameters.min.json parTopLevelManagementGroupPrefix="$(ManagementGroupPrefix)" parLogAnalyticsWorkspaceResourceId="/subscriptions/$(subscriptionId)/resourceGroups/$(ResourceGroupName)/providers/Microsoft.OperationalInsights/workspaces/alz-log-analytics" --location $(Location)
 
       - task: Bash@3
         displayName: Az CLI Subscription Placement for PR

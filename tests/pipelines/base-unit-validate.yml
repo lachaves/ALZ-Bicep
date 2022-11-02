@@ -45,7 +45,6 @@ jobs:
           script: |
             az account list --refresh
 
-<<<<<<< HEAD
       - task: Bash@3
         displayName: Az CLI Create Resource Group for PR
         name: create_rsg
@@ -57,23 +56,16 @@ jobs:
                 sleep 300
             fi
             az deployment sub create --name "deploy-$(ResourceGroupName)" --template-file infra-as-code/bicep/modules/resourceGroup/resourceGroup.bicep --location $(Location) --parameters parLocation=$(Location) parResourceGroupName=$(ResourceGroupName)
-=======
-  - task: Bash@3
-    displayName: Az CLI Deploy mgDiagSettingsAll for PR
-    name: create_mgDiagSettingsAll
-    inputs:
-      targetType: "inline"
-      script: |
-        az deployment tenant create --template-file infra-as-code/bicep/orchestration/mgDiagSettingsAll/mgDiagSettingsAll.bicep --parameters @infra-as-code/bicep/orchestration/mgDiagSettingsAll/parameters/mgDiagSettings.parameters.min.json
 
-  - task: Bash@3
-    displayName: Az CLI Validate Subscription Placement for PR
-    name: move_sub
-    inputs:
-      targetType: 'inline'
-      script: |
-        az deployment mg validate --template-file infra-as-code/bicep/modules/subscriptionPlacement/subscriptionPlacement.bicep --parameters @infra-as-code/bicep/modules/subscriptionPlacement/parameters/subscriptionPlacement.parameters.all.json parTargetManagementGroupId=$(ManagementGroupPrefix)-platform-connectivity parSubscriptionIds='["$(subscriptionId)"]' --location $(Location) --management-group-id $(ManagementGroupPrefix) --name $(ManagementGroupPrefix)
->>>>>>> bccbd5b12e1cbc9f098591d0fb5e298798241634
+      - task: Bash@3
+        displayName: Az CLI Register Resource Providers for PR
+        name: register_providers
+        inputs:
+          targetType: "inline"
+          script: |
+            az account set --subscription $(subscriptionId)
+            az provider register -n 'Microsoft.Insights'
+
 
       - task: Bash@3
         displayName: Az CLI Deploy Management Groups for PR
@@ -100,12 +92,20 @@ jobs:
             az deployment mg validate --template-file infra-as-code/bicep/modules/policy/definitions/customPolicyDefinitions.bicep  --parameters @infra-as-code/bicep/modules/policy/definitions/parameters/customPolicyDefinitions.parameters.all.json parTargetManagementGroupId=$(ManagementGroupPrefix) --location $(Location) --management-group-id $(ManagementGroupPrefix) --name $(ManagementGroupPrefix)
 
       - task: Bash@3
-        displayName: Az CLI Validate Logging for PR
-        name: validate_logging
+        displayName: Az CLI Deploy Logging for PR
+        name: create_logging
         inputs:
           targetType: "inline"
           script: |
-            az deployment group validate --resource-group $(ResourceGroupName) --template-file infra-as-code/bicep/modules/logging/logging.bicep --parameters @infra-as-code/bicep/modules/logging/parameters/logging.parameters.all.json --name $(ManagementGroupPrefix)
+            az deployment group create --resource-group $(ResourceGroupName) --template-file infra-as-code/bicep/modules/logging/logging.bicep --parameters @infra-as-code/bicep/modules/logging/parameters/logging.parameters.min.json
+
+      - task: Bash@3
+        displayName: Az CLI Validate mgDiagSettingsAll for PR
+        name: create_mgDiagSettingsAll
+        inputs:
+          targetType: "inline"
+          script: |
+            az deployment tenant validate --template-file infra-as-code/bicep/orchestration/mgDiagSettingsAll/mgDiagSettingsAll.bicep --parameters @infra-as-code/bicep/orchestration/mgDiagSettingsAll/parameters/mgDiagSettingsAll.parameters.min.json parTopLevelManagementGroupPrefix="$(ManagementGroupPrefix)" parLogAnalyticsWorkspaceResourceId="/subscriptions/$(subscriptionId)/resourceGroups/$(ResourceGroupName)/providers/Microsoft.OperationalInsights/workspaces/alz-log-analytics" --location $(Location)
 
       - task: Bash@3
         displayName: Az CLI Validate Subscription Placement for PR
